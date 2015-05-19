@@ -7,7 +7,7 @@ import org.apache.spark.rdd._
 import java.net._
 
 // comaniac: Import extended package
-import org.apache.spark.rdd.srdd._
+import org.apache.spark.sparkextend._
 
 class Point(x:Float, y:Float, z:Float) extends java.io.Externalizable {
     private var _x = x
@@ -53,7 +53,7 @@ object SparkKMeans {
         val conf = new SparkConf()
         conf.setAppName(appName)
         
-        return new SparkContext(conf)
+        return new SparkContextwithSRDD(conf)
     }
 
     def run_kmeans(args : Array[String]) {
@@ -68,8 +68,9 @@ object SparkKMeans {
         val inputPath = args(2);
 
         // comaniac: Create sRDD
-        val points : sRDD[Point] = sRDDWrapper.wrap("kmeans_points", sc.objectFile(inputPath))
-        points.cache()
+        val points : sRDD[Point] = sRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
+        points.cache
+
         val samples : Array[Point] = points.takeSample(false, K);
 
         var centers = new Array[(Int, Point)](K)
@@ -99,6 +100,7 @@ object SparkKMeans {
                         ", " + p.get_z + ")")
             }
         }
+        points.showLocs
     }
 
     def convert(args : Array[String]) {
