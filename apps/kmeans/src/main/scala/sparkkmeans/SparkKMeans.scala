@@ -49,7 +49,7 @@ object SparkKMeans {
         }
     }
 
-    def get_spark_context(appName : String) : SparkContext = {
+    def get_spark_context(appName : String) : SparkContextwithSRDD = {
         val conf = new SparkConf()
         conf.setAppName(appName)
         
@@ -69,6 +69,7 @@ object SparkKMeans {
 
         // comaniac: Create sRDD
         val points : sRDD[Point] = sRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
+        sc.listsRDD()
         points.cache
 
         val samples : Array[Point] = points.takeSample(false, K);
@@ -100,7 +101,6 @@ object SparkKMeans {
                         ", " + p.get_z + ")")
             }
         }
-        points.showLocs
     }
 
     def convert(args : Array[String]) {

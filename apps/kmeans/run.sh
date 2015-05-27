@@ -8,7 +8,7 @@ if [[ $# != 1 ]]; then
 fi
 
 spark-submit --class SparkKMeans \
-	--jars ${SRDD_HOME}/target/sRDD-1.0-SNAPSHOT.jar \
+	--jars ${SRDD_HOME}/target/sRDD-1.0-SNAPSHOT.jar,${SRDD_HOME}/runtime/lib/fscontext.jar,${SRDD_HOME}/runtime/lib/providerutil.jar \
 	--master local[*] \
 	target/sparkkmeans-0.0.0.jar \
 	run 3 $1 converted
