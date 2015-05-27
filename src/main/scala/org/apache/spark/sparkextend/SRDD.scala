@@ -9,12 +9,10 @@ import org.apache.spark.rdd._
 import org.apache.spark.storage._
 import org.apache.spark.scheduler._
 
-class SRDD[T: ClassTag](name: String, sc: SparkContextwithSRDD, prev: RDD[T])
+class SRDD[T: ClassTag](uname: String, sc: SparkContextwithSRDD, prev: RDD[T])
     extends RDD[T](prev) {
 
-  val UniqueName = name
-
-  // Default RDD operations.
+  val UniqueName = uname
 
   override def getPartitions: Array[Partition] = firstParent[T].partitions
 
@@ -42,10 +40,10 @@ object SRDDWrapper {
     if (!sc.hasSRDD(name)) {
       newSRDD = new SRDD[T](name, sc, rdd)
       sc.bindSRDD(newSRDD)
-      println("A new SRDD \"" + name + "\" is created and is going to be recorded.")
+      println("A new SRDD \"" + name + "\" is recorded.")
     }
     else {
-//      newSRDD = sc.getSRDD(name)
+      newSRDD = sc.getSRDD(name)
       println("Find existed SRDD.")
     }
 

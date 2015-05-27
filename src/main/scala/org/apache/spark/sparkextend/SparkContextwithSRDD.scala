@@ -19,12 +19,13 @@ class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
     println("SRDD " + rdd.UniqueName + " is binded.")
   }
 
-  def getSRDD[T: ClassTag](name: String) = {
-    if (SRDDMap.exists(_._1 == name))
-//      SRDDMap(name)
+  def getSRDD[T: ClassTag](name: String): SRDD[T] = {
+    try {
+      SRDDMap(name).asInstanceOf[SRDD[T]]
+    } catch {
+      case e: Exception => println("Fail to retrieve SRDD " + name + ": " + e)
       null
-    else
-      null
+    }
   }
 
   def hasSRDD(name: String) = {
@@ -44,3 +45,13 @@ class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
 
 }
 
+object SparkContextwithSRDD {
+  var sc: SparkContextwithSRDD = null
+  
+  def getSC(config: SparkConf): SparkContextwithSRDD = {
+    if (sc == null)
+      sc = new SparkContextwithSRDD(config)
+    sc
+  }
+
+}

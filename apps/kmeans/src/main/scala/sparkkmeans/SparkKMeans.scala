@@ -69,7 +69,9 @@ object SparkKMeans {
 
         // comaniac: Create SRDD
         val points : SRDD[Point] = SRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
-        val points2 : SRDD[Point] = SRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
+        val points2 : SRDD[Point] = SRDDWrapper.wrap("kmeans_points2", sc, sc.objectFile(inputPath))
+        val pointsN : SRDD[Point] = SRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
+        val points3 : SRDD[Point] = SRDDWrapper.wrap("kmeans_points3", sc, sc.objectFile(inputPath))
 
         sc.listSRDD()
         points.cache
