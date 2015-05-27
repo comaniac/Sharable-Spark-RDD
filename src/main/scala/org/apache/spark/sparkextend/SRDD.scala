@@ -9,14 +9,10 @@ import org.apache.spark.rdd._
 import org.apache.spark.storage._
 import org.apache.spark.scheduler._
 
-class sRDD[T: ClassTag](name: String, sc: SparkContextwithSRDD, prev: RDD[T])
+class SRDD[T: ClassTag](name: String, sc: SparkContextwithSRDD, prev: RDD[T])
     extends RDD[T](prev) {
 
-  // comaniac: Recorded information should be processed here.
-  println("A new RDD \"" + name + "\" is created and is going to be recorded.")
   val UniqueName = name
-
-  sc.bindsRDD(this)
 
   // Default RDD operations.
 
@@ -39,8 +35,20 @@ class sRDD[T: ClassTag](name: String, sc: SparkContextwithSRDD, prev: RDD[T])
 
 }
 
-object sRDDWrapper {
-  def wrap[T: ClassTag](name: String, sc: SparkContextwithSRDD, rdd : RDD[T]) : sRDD[T] = {
-    new sRDD[T](name, sc, rdd)
+object SRDDWrapper {
+  def wrap[T: ClassTag](name: String, sc: SparkContextwithSRDD, rdd : RDD[T]) : SRDD[T] = {
+    var newSRDD: SRDD[T] = null
+
+    if (!sc.hasSRDD(name)) {
+      newSRDD = new SRDD[T](name, sc, rdd)
+      sc.bindSRDD(newSRDD)
+      println("A new SRDD \"" + name + "\" is created and is going to be recorded.")
+    }
+    else {
+//      newSRDD = sc.getSRDD(name)
+      println("Find existed SRDD.")
+    }
+
+    newSRDD
   }
 }

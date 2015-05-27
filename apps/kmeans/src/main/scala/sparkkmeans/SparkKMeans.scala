@@ -67,9 +67,11 @@ object SparkKMeans {
         val iters = args(1).toInt;
         val inputPath = args(2);
 
-        // comaniac: Create sRDD
-        val points : sRDD[Point] = sRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
-        sc.listsRDD()
+        // comaniac: Create SRDD
+        val points : SRDD[Point] = SRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
+        val points2 : SRDD[Point] = SRDDWrapper.wrap("kmeans_points", sc, sc.objectFile(inputPath))
+
+        sc.listSRDD()
         points.cache
 
         val samples : Array[Point] = points.takeSample(false, K);

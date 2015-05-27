@@ -12,16 +12,31 @@ import org.apache.spark.rdd._
 class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
   println("SparkContextwithSRDD is created")
 
-  val sRDDMap = mutable.HashMap[String, sRDD[_]]()
+  val SRDDMap = mutable.HashMap[String, SRDD[_]]()
 
-  def bindsRDD[T: ClassTag](rdd: sRDD[T]) = {
-    sRDDMap(rdd.UniqueName) = rdd
-    println("sRDD " + rdd.UniqueName + " is binded.")
+  def bindSRDD[T: ClassTag](rdd: SRDD[T]) = {
+    SRDDMap(rdd.UniqueName) = rdd
+    println("SRDD " + rdd.UniqueName + " is binded.")
   }
 
-  def listsRDD() = {
-    println("List recordrd sRDD:")
-    sRDDMap.keys.foreach{
+  def getSRDD[T: ClassTag](name: String) = {
+    if (SRDDMap.exists(_._1 == name))
+//      SRDDMap(name)
+      null
+    else
+      null
+  }
+
+  def hasSRDD(name: String) = {
+    if (SRDDMap.exists(_._1 == name))
+      true
+    else
+      false
+  }
+
+  def listSRDD() = {
+    println("List recordrd SRDD:")
+    SRDDMap.keys.foreach{
       key => 
       println("UniqueName: " + key)
     }
