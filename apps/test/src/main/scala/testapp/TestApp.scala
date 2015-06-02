@@ -12,7 +12,7 @@ import org.apache.spark.sparkextend._
 object TestApp {
     def main(args : Array[String]) {
       val sc = get_spark_context("Test App")
-      val rdd = sc.textFile("/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt")
+      val rdd = sc.textFileSRDD("testSRDD", "/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt")
 
     }
 

@@ -12,10 +12,13 @@ import org.apache.spark.rdd._
 class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
   println("SparkContextwithSRDD is created")
 
-  override def textFile(path: String, minPartitions: Int = defaultMinPartitions): SRDD[String] = {
-    SRDDClient.createSRDD("textFile", path, minPartitions)
-
-    null // FIXME
+  def textFileSRDD(name: String, path: String, minPartitions: Int = defaultMinPartitions): SRDD_I = {
+    val result = SRDDClient.createSRDD(name, "textFile", path, minPartitions)
+    if (result == 1)
+      println("[SparkContextwithSRDD] Create a new RDD: " + name)
+    else
+      println("[SparkContextwithSRDD] Use existed RDD: " + name)
+    new SRDD_I(name)
   }
 }
 

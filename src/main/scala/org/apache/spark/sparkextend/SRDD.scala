@@ -9,10 +9,19 @@ import org.apache.spark.rdd._
 import org.apache.spark.storage._
 import org.apache.spark.scheduler._
 
-class SRDD[T: ClassTag](uname: String, sc: SparkContextwithSRDD, prev: RDD[T])
-    extends RDD[T](prev) {
+class SRDD_I(name: String)
+{
+  ;
+}
+
+class SRDD[T: ClassTag](uname: String, sc: SRDDManager, prev: RDD[T]) 
+  extends RDD[T](prev) {
 
   val UniqueName = uname
+
+  def this(name: String, sc: SRDDManager) = {
+    this(name, sc, null)
+  }
 
   override def getPartitions: Array[Partition] = firstParent[T].partitions
 
@@ -30,6 +39,17 @@ class SRDD[T: ClassTag](uname: String, sc: SparkContextwithSRDD, prev: RDD[T])
     }
     iter
   }
-
 }
 
+object SRDDWrapper {
+
+   def wrap[T: ClassTag](name: String, sc: SRDDManager, rdd: RDD[T]): Int = { 
+     if (!sc.hasSRDD(name)) {
+       sc.bindSRDD(new SRDD[T](name, sc, rdd))
+       1
+     }
+     else {
+       0
+     }
+   }
+ }

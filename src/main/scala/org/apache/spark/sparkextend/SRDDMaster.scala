@@ -13,10 +13,14 @@ import org.apache.spark.sparkextend._
 import org.apache.spark.sparkextend.SRDDControls._
 
 // comaniac: Import Akka packages
+import akka.event._
 import akka.actor._
+import akka.dispatch._
+import akka.pattern._
+import akka.util._
 import com.typesafe.config._
 
-class SRDDMaster extends Actor {
+class SRDDMaster extends Actor with ActorLogging {
   var conf: SparkConf = new SparkConf()
   var manager: SRDDManager = new SRDDManager(conf)
 
@@ -24,14 +28,18 @@ class SRDDMaster extends Actor {
     case Test(name) => 
       println("[SRDDMaster] Test command from " + name + ".")
 
-    case ObjectFile(path, minPartitions) =>
+    case ObjectFile(name, path, minPartitions) =>
       val rdd = manager.objectFile(path, minPartitions)
-      println("[SRDDMaster] New RDD by objectFile: " + rdd)
+      println("[SRDDMaster] New SRDD by objectFile: " + rdd)
 
-    case TextFile(path, minPartitions) =>
-      val rdd = manager.textFile(path, minPartitions)
-      println("[SRDDMaster] New RDD by textFile: " + rdd)
+    case TextFile(name, path, minPartitions) =>
+      val result = SRDDWrapper.wrap(name, manager, manager.textFile(path, minPartitions))
+      println("[SRDDMaster] textFile done (" + result + ").")
+      sender ! result
 
+    case _ =>
+      println("[SRDDMaster] Unknown message.")
+      sender ! 0
   }
 }
 
