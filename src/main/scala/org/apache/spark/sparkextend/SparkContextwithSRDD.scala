@@ -12,46 +12,10 @@ import org.apache.spark.rdd._
 class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
   println("SparkContextwithSRDD is created")
 
-  val SRDDMap = mutable.HashMap[String, SRDD[_]]()
+  override def textFile(path: String, minPartitions: Int = defaultMinPartitions): SRDD[String] = {
+    SRDDClient.createSRDD("textFile", path, minPartitions)
 
-  def bindSRDD[T: ClassTag](rdd: SRDD[T]) = {
-    SRDDMap(rdd.UniqueName) = rdd
-    println("SRDD " + rdd.UniqueName + " is binded.")
+    null // FIXME
   }
-
-  def getSRDD[T: ClassTag](name: String): SRDD[T] = {
-    try {
-      SRDDMap(name).asInstanceOf[SRDD[T]]
-    } catch {
-      case e: Exception => println("Fail to retrieve SRDD " + name + ": " + e)
-      null
-    }
-  }
-
-  def hasSRDD(name: String) = {
-    if (SRDDMap.exists(_._1 == name))
-      true
-    else
-      false
-  }
-
-  def listSRDD() = {
-    println("List recordrd SRDD:")
-    SRDDMap.keys.foreach{
-      key => 
-      println("UniqueName: " + key)
-    }
-  }
-
 }
 
-object SparkContextwithSRDD {
-  var sc: SparkContextwithSRDD = null
-  
-  def getSC(config: SparkConf): SparkContextwithSRDD = {
-    if (sc == null)
-      sc = new SparkContextwithSRDD(config)
-    sc
-  }
-
-}

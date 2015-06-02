@@ -49,6 +49,8 @@ import org.apache.spark.scheduler.{EventLoggingListener, ReplayListenerBus}
 import org.apache.spark.ui.SparkUI
 import org.apache.spark.util.{ActorLogReceive, AkkaUtils, SignalLogger, Utils}
 
+import org.apache.spark.sparkextend._
+
 private[spark] class Master(
     host: String,
     port: Int,
@@ -861,6 +863,7 @@ private[spark] class Master(
 private[spark] object Master extends Logging {
   val systemName = "sparkMaster"
   private val actorName = "Master"
+  var msSparkContext: SparkContextwithSRDD = null
 
   def main(argStrings: Array[String]) {
     SignalLogger.register(log)
@@ -868,6 +871,9 @@ private[spark] object Master extends Logging {
     val args = new MasterArguments(argStrings, conf)
     val (actorSystem, _, _, _) = startSystemAndActor(args.host, args.port, args.webUiPort, conf)
     actorSystem.awaitTermination()
+
+    msSparkContext = new SparkContextwithSRDD(conf)
+    logInfo("Master Spark context has been created for sharable RDDs")    
   }
 
   /**

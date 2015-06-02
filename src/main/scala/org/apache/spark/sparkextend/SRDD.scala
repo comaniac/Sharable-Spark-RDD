@@ -33,20 +33,3 @@ class SRDD[T: ClassTag](uname: String, sc: SparkContextwithSRDD, prev: RDD[T])
 
 }
 
-object SRDDWrapper {
-  def wrap[T: ClassTag](name: String, sc: SparkContextwithSRDD, rdd : RDD[T]) : SRDD[T] = {
-    var newSRDD: SRDD[T] = null
-
-    if (!sc.hasSRDD(name)) {
-      newSRDD = new SRDD[T](name, sc, rdd)
-      sc.bindSRDD(newSRDD)
-      println("A new SRDD \"" + name + "\" is recorded.")
-    }
-    else {
-      newSRDD = sc.getSRDD(name)
-      println("Find existed SRDD.")
-    }
-
-    newSRDD
-  }
-}
