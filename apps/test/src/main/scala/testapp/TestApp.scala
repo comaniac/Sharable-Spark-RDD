@@ -13,6 +13,7 @@ object TestApp {
     def main(args : Array[String]) {
       val sc = get_spark_context("Test App")
       val srdd: SRDD_I = sc.textFile("testSRDD", "/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt", 2)
+      srdd.cache
       println("Count: " + srdd.count)
     }
 

@@ -17,6 +17,10 @@ class SRDD_I(var name: String)
     val result: Option[Any] = SRDDClient.action(name, "count")
     result.get.asInstanceOf[Long]
   }
+
+  def cache(): ExitCode = {
+    SRDDClient.cache(name)
+  }
 }
 
 class SRDD[T: ClassTag](uname: String, sc: SRDDManager, var rdd: RDD[T]) 

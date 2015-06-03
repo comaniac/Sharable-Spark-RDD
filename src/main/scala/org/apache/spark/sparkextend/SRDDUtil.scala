@@ -38,6 +38,10 @@ object SRDDControls {
   case class Count(
     name: String
     ) extends SRDDControl
+
+  case class Cache(
+    name: String
+    ) extends SRDDControl
 }
 
 import ExitCode._

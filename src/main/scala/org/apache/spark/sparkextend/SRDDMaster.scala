@@ -43,6 +43,11 @@ class SRDDMaster extends Actor with ActorLogging {
       val srdd = manager.getSRDD(name)
       sender ! srdd.rdd.count
 
+    case Cache(name) =>
+      val srdd = manager.getSRDD(name)
+      srdd.cache
+      sender ! EXIT_SUCCESS
+
     case _ =>
       println("[SRDDMaster] Unknown message.")
       sender ! EXIT_FAILURE

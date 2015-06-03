@@ -91,6 +91,24 @@ class SRDDClientAction(
   }
 }
 
+class SRDDClientCache(
+  var reval: ReturnValue,
+  var name: String
+  ) extends SRDDClient {
+
+  val actor = context.actorSelection(masterUrl)
+
+  implicit val timeout = Timeout(10 seconds)
+  val code = Await.result(actor ? Cache(name), timeout.duration).asInstanceOf[ExitCode]
+  reval.setExitCode(code)
+
+  override def receive = {
+    case _ =>
+      println("[SRDDClientCache] Receive unknown message.")
+  }
+}
+
+
 object SRDDClient extends App {
   def testSRDDMaster() = {
     val system = ActorSystem("SRDDClient", ConfigFactory.load("SRDD-akka-client"))
@@ -122,6 +140,15 @@ object SRDDClient extends App {
       println("[SRDDClient] Action failed due to unknown error.")
       Some(0.asInstanceOf[Long])
     }
+  }
+
+  def cache(name: String): ExitCode = {
+    val system = ActorSystem("ActorCreate", ConfigFactory.load("SRDD-akka-client"))
+    var reval = new ReturnValue
+    system.actorOf(Props(classOf[SRDDClientCache], reval, name), "cacheSRDD") 
+    system.shutdown
+    system.awaitTermination
+    reval.getExitCode
   }
 
 // coamniac: used for testing
