@@ -12,8 +12,8 @@ import org.apache.spark.sparkextend._
 object TestApp {
     def main(args : Array[String]) {
       val sc = get_spark_context("Test App")
-      val rdd = sc.textFileSRDD("testSRDD", "/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt")
-
+      val srdd: SRDD_I = sc.textFile("testSRDD", "/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt", 2)
+      println("Count: " + srdd.count)
     }
 
     def get_spark_context(appName : String) : SparkContextwithSRDD = {

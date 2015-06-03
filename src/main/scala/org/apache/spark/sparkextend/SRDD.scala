@@ -1,5 +1,7 @@
 package org.apache.spark.sparkextend
 
+import org.apache.spark.sparkextend.ExitCode._
+
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
@@ -9,13 +11,16 @@ import org.apache.spark.rdd._
 import org.apache.spark.storage._
 import org.apache.spark.scheduler._
 
-class SRDD_I(name: String)
+class SRDD_I(var name: String)
 {
-  ;
+  def count(): Long = {
+    val result: Option[Any] = SRDDClient.action(name, "count")
+    result.get.asInstanceOf[Long]
+  }
 }
 
-class SRDD[T: ClassTag](uname: String, sc: SRDDManager, prev: RDD[T]) 
-  extends RDD[T](prev) {
+class SRDD[T: ClassTag](uname: String, sc: SRDDManager, var rdd: RDD[T]) 
+  extends RDD[T](sc.asInstanceOf[SparkContext], Nil) {
 
   val UniqueName = uname
 
@@ -43,13 +48,12 @@ class SRDD[T: ClassTag](uname: String, sc: SRDDManager, prev: RDD[T])
 
 object SRDDWrapper {
 
-   def wrap[T: ClassTag](name: String, sc: SRDDManager, rdd: RDD[T]): Int = { 
-     if (!sc.hasSRDD(name)) {
-       sc.bindSRDD(new SRDD[T](name, sc, rdd))
-       1
-     }
-     else {
-       0
-     }
-   }
- }
+  def wrap[T: ClassTag](name: String, sc: SRDDManager, rdd: RDD[T]): ExitCode = { 
+    if (!sc.hasSRDD(name)) {
+      sc.bindSRDD(new SRDD[T](name, sc, rdd))
+      CREATE_SUCCESS
+    }
+    else
+      CREATE_IGNORE
+  }
+}

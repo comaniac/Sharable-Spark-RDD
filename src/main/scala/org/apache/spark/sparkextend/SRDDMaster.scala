@@ -11,6 +11,7 @@ import java.net._
 // comaniac: Import extended package
 import org.apache.spark.sparkextend._
 import org.apache.spark.sparkextend.SRDDControls._
+import org.apache.spark.sparkextend.ExitCode._
 
 // comaniac: Import Akka packages
 import akka.event._
@@ -29,17 +30,22 @@ class SRDDMaster extends Actor with ActorLogging {
       println("[SRDDMaster] Test command from " + name + ".")
 
     case ObjectFile(name, path, minPartitions) =>
-      val rdd = manager.objectFile(path, minPartitions)
-      println("[SRDDMaster] New SRDD by objectFile: " + rdd)
+      val result = SRDDWrapper.wrap(name, manager, manager.objectFile(path, minPartitions))
+      println("[SRDDMaster] objectFile done (" + result + ").")
+      sender ! result
 
     case TextFile(name, path, minPartitions) =>
       val result = SRDDWrapper.wrap(name, manager, manager.textFile(path, minPartitions))
       println("[SRDDMaster] textFile done (" + result + ").")
       sender ! result
 
+    case Count(name) =>
+      val srdd = manager.getSRDD(name)
+      sender ! srdd.rdd.count
+
     case _ =>
       println("[SRDDMaster] Unknown message.")
-      sender ! 0
+      sender ! EXIT_FAILURE
   }
 }
 
