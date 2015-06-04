@@ -11,15 +11,32 @@ import org.apache.spark.rdd._
 import org.apache.spark.storage._
 import org.apache.spark.scheduler._
 
-class SRDD_I(var name: String)
+class SRDD_I[T: ClassTag](var name: String)
 {
   def count(): Long = {
-    val result: Option[Any] = SRDDClient.action(name, "count")
-    result.get.asInstanceOf[Long]
+    val result: Option[Array[Any]] = SRDDClient.action(name, "count")
+    (result.get)(0).asInstanceOf[Long]
+  }
+
+  def collect(): Array[T] = { // FIXME
+    val result: Option[Array[Any]] = SRDDClient.action(name, "collect")
+    result.get.asInstanceOf[Array[T]]
   }
 
   def cache(): ExitCode = {
     SRDDClient.cache(name)
+  }
+
+  def map[T: ClassTag](command: String, args: Array[T]): SRDD_I[String] = {
+    val stringArgs = args.map(e => e.toString)
+    new SRDD_I[String](SRDDClient.map(name, command, stringArgs).get)
+  }
+
+  def reduce[T: ClassTag](command: String, args: Array[T] = null): String = {
+    var stringArgs: Array[String] = null
+    if (args != null)
+      stringArgs = args.map(e => e.toString)
+    SRDDClient.reduce(name, command, stringArgs).get
   }
 }
 

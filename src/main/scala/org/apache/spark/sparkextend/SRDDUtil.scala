@@ -39,6 +39,19 @@ object SRDDControls {
     name: String
     ) extends SRDDControl
 
+  case class Collect(
+    name: String
+  ) extends SRDDControl
+
+  case class MapPow(
+    name: String,
+    power: Int
+  ) extends SRDDControl
+
+  case class ReduceSum(
+    name: String
+  ) extends SRDDControl
+
   case class Cache(
     name: String
     ) extends SRDDControl
@@ -48,11 +61,23 @@ import ExitCode._
 class ReturnValue {
   var exitCode: ExitCode = EXIT_SUCCESS
   var returnCount: Long = -1
+  var returnCollect: Array[Any] = null
+  var returnSRDD: SRDD_I[String] = null
+  var returnStr: String = null
 
   def setExitCode(v: ExitCode) { exitCode = v }
   def getExitCode(): ExitCode = { exitCode }
 
   def setReturnCount(v: Long) { returnCount = v }
-  def getReturnCount(): Long = { returnCount; }
+  def getReturnCount(): Long = { returnCount }
+
+  def setReturnCollect(a: Array[Any]) { returnCollect = a }
+  def getReturnCollect(): Array[Any] = { returnCollect }
+
+  def setReturnSRDD(srdd: SRDD_I[String]) { returnSRDD = srdd }
+  def getReturnSRDD(): SRDD_I[String] = { returnSRDD }
+
+  def setReturnString(s: String) { returnStr = s }
+  def getReturnString(): String = { returnStr }
 }
 

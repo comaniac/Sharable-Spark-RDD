@@ -14,7 +14,7 @@ import org.apache.spark.rdd._
 class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
   println("SparkContextwithSRDD is created")
 
-  def textFile(name: String, path: String, minPartitions: Int): SRDD_I = {
+  def textFile(name: String, path: String, minPartitions: Int): SRDD_I[String] = {
     val code = SRDDClient.createSRDD(name, "textFile", path, minPartitions)
     code match {
       case CREATE_SUCCESS => 
@@ -24,10 +24,10 @@ class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
       case CREATE_FAILURE =>
         println("[SparkContextwithSRDD] Create SRDD failed due to unknown error: " + name)
     }
-    new SRDD_I(name)
+    new SRDD_I[String](name)
   }
 
-  def objectFile(name: String, path: String, minPartitions: Int): SRDD_I = {
+  def objectFile[T: ClassTag](name: String, path: String, minPartitions: Int): SRDD_I[T] = {
     val code = SRDDClient.createSRDD(name, "objectFile", path, minPartitions)
     code match {
       case CREATE_SUCCESS => 
@@ -37,7 +37,7 @@ class SparkContextwithSRDD(config: SparkConf) extends SparkContext {
       case CREATE_FAILURE =>
         println("[SparkContextwithSRDD] Create SRDD failed due to unknown error: " + name)
     }
-    new SRDD_I(name)
+    new SRDD_I[T](name)
   }
 
 }

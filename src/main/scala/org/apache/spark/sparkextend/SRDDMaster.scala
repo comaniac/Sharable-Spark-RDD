@@ -41,12 +41,34 @@ class SRDDMaster extends Actor with ActorLogging {
 
     case Count(name) =>
       val srdd = manager.getSRDD(name)
+      println("[SRDDMaster] count done.")
       sender ! srdd.rdd.count
+
+    case Collect(name) =>
+      var srdd = manager.getSRDD(name)
+      println("[SRDDMaster] collect done.")
+      sender ! srdd.rdd.collect
 
     case Cache(name) =>
       val srdd = manager.getSRDD(name)
       srdd.cache
+      println("[SRDDMaster] cache done.")
       sender ! EXIT_SUCCESS
+
+    case MapPow(name, p) =>
+      val srdd = manager.getSRDD(name).asInstanceOf[SRDD[String]]
+      if (!manager.hasSRDD(name + "_pow" + p))
+        SRDDWrapper.wrap(name + "_pow" + p, manager, srdd.rdd.map(e => (pow(e.toDouble, p.toDouble)).toString))
+      else
+        println("[SRDDMaster] Use existed SRDD " + name + "_pow" + p)
+      println("[SRDDMaster] map.pow done.")
+      sender ! (name + "_pow" + p)
+
+    case ReduceSum(name) =>
+      val srdd = manager.getSRDD(name).asInstanceOf[SRDD[String]]
+      val result = srdd.rdd.map(e => e.toDouble).reduce((a, b) => (a + b))
+      println("[SRDDMaster] reduce.sum done.")
+      sender ! result.toString
 
     case _ =>
       println("[SRDDMaster] Unknown message.")

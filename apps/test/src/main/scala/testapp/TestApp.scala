@@ -12,9 +12,11 @@ import org.apache.spark.sparkextend._
 object TestApp {
     def main(args : Array[String]) {
       val sc = get_spark_context("Test App")
-      val srdd: SRDD_I = sc.textFile("testSRDD", "/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt", 2)
+      val srdd: SRDD_I[String] = sc.textFile("testSRDD", "/curr/cody/Course/cs249/Shareable-Spark-RDD/apps/test/testInput.txt", 2)
       srdd.cache
-      println("Count: " + srdd.count)
+      println("#Input: " + srdd.count)
+      println("Quadratic sum: " + srdd.map("pow", Array(2)).reduce("sum"))
+
     }
 
     def get_spark_context(appName : String) : SparkContextwithSRDD = {

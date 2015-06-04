@@ -79,6 +79,11 @@ class SRDDClientAction(
       val result = Await.result(actor ? Count(name), timeout.duration).asInstanceOf[Long]
       reval.setReturnCount(result)
       EXIT_SUCCESS
+    case "collect" => // FIXME
+      val result = Await.result(actor ? Collect(name), timeout.duration).asInstanceOf[Array[Any]]
+      println("[SRDDClientAction] Array length " + result.length)
+      reval.setReturnCollect(result)
+      EXIT_SUCCESS
     case _ =>
       println("[SRDDClientAction] Invalied command: " + command)
       EXIT_FAILURE
@@ -88,6 +93,61 @@ class SRDDClientAction(
   override def receive = {
     case _ =>
       println("[SRDDClientAction] Receive unknown message.")
+  }
+}
+
+class SRDDClientMap(
+  var reval: ReturnValue,
+  var name: String, 
+  var command: String,
+  var args: Array[String]
+  ) extends SRDDClient {
+
+  val actor = context.actorSelection(masterUrl)
+
+  implicit val timeout = Timeout(10 seconds)
+  val code = command match {
+    case "pow" =>
+      val result = Await.result(actor ? MapPow(name, args(0).toInt), timeout.duration).asInstanceOf[String]
+      reval.setReturnString(result)
+      EXIT_SUCCESS
+
+    case _ =>
+      println("[SRDDClientMap] Invalied command: " + command)
+      EXIT_FAILURE
+  }
+  reval.setExitCode(code)
+
+  override def receive = {
+    case _ =>
+      println("[SRDDClientAction] Receive unknown message.")
+  }
+}
+
+class SRDDClientReduce(
+  var reval: ReturnValue,
+  var name: String, 
+  var command: String,
+  var args: Array[String]
+  ) extends SRDDClient {
+
+  val actor = context.actorSelection(masterUrl)
+
+  implicit val timeout = Timeout(10 seconds)
+  val code = command match {
+    case "sum" =>
+      val result = Await.result(actor ? ReduceSum(name), timeout.duration).asInstanceOf[String]
+      reval.setReturnString(result)
+      EXIT_SUCCESS
+    case _ =>
+      println("[SRDDClientReduce] Invalied command: " + command)
+      EXIT_FAILURE
+  }
+  reval.setExitCode(code)
+
+  override def receive = {
+    case _ =>
+      println("[SRDDClientReduce] Receive unknown message.")
   }
 }
 
@@ -108,7 +168,6 @@ class SRDDClientCache(
   }
 }
 
-
 object SRDDClient extends App {
   def testSRDDMaster() = {
     val system = ActorSystem("SRDDClient", ConfigFactory.load("SRDD-akka-client"))
@@ -127,18 +186,63 @@ object SRDDClient extends App {
     reval.getExitCode
   }
 
-  def action(name: String, command: String): Option[Any] = {
-    val system = ActorSystem("ActorCreate", ConfigFactory.load("SRDD-akka-client"))
+  def action(name: String, command: String): Option[Array[Any]] = {
+    val system = ActorSystem("ActorAction", ConfigFactory.load("SRDD-akka-client"))
     var reval = new ReturnValue
     system.actorOf(Props(classOf[SRDDClientAction], reval, name, command), "action") 
     system.shutdown
     system.awaitTermination
 
     if (reval.getExitCode == EXIT_SUCCESS)
-      Some(reval.getReturnCount)
+      command match {
+        case "count" =>
+          val r = Array[Any](1)
+          r(0) = reval.getReturnCount
+          Some(r)
+        case "collect" =>
+          Some(reval.getReturnCollect)
+      }
     else {
       println("[SRDDClient] Action failed due to unknown error.")
-      Some(0.asInstanceOf[Long])
+      None
+    }
+  }
+
+   def map(name: String, command: String, args: Array[String]): Option[String] = {
+    val system = ActorSystem("ActorMap", ConfigFactory.load("SRDD-akka-client"))
+    var reval = new ReturnValue
+    system.actorOf(Props(classOf[SRDDClientMap], reval, name, command, args), "map") 
+    system.shutdown
+    system.awaitTermination
+
+    if (reval.getExitCode == EXIT_SUCCESS) {
+      command match {
+        case "pow" =>
+          Some(reval.getReturnString)
+      }
+    }
+    else {
+      println("[SRDDClient] Map failed due to unknown error.")
+      None
+    }
+  }
+
+   def reduce(name: String, command: String, args: Array[String]): Option[String] = {
+    val system = ActorSystem("ActorReduce", ConfigFactory.load("SRDD-akka-client"))
+    var reval = new ReturnValue
+    system.actorOf(Props(classOf[SRDDClientReduce], reval, name, command, args), "reduce")
+    system.shutdown
+    system.awaitTermination
+
+    if (reval.getExitCode == EXIT_SUCCESS) {
+      command match {
+        case "sum" =>
+          Some(reval.getReturnString)
+      }
+    }
+    else {
+      println("[SRDDClient] Reduce failed due to unknown error.")
+      None
     }
   }
 
