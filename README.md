@@ -1,21 +1,21 @@
-# Shareable-Spark-RDD
+# Introduction
 This project aims to create an extension package of Spark to support shareable RDDs between Spark contexts.
 
-Requirement:
-	- Spark executable. (1.2.1 or above)
-	- JDK 7. (environment variable JAVA_HOME must be set)
-	- Environment variable SRDD_HOME must be set.
+#Requirement
+- Spark executable. (1.2.1 or above)
+- JDK 7. (environment variable JAVA_HOME must be set)
+- Environment variable SRDD_HOME must be set.
 
-Install:
-	- ./$SRDD_HOME/build/mvn package
+#Install
+- ./$SRDD_HOME/build/mvn package
 
-How to Use:
-	- Import package
-		- import org.apache.spark.sparkextend._
-	- Add dependency to Maven configure pom.xml
-	- mvn package
+#How to Use
+- Import package
+	- import org.apache.spark.sparkextend._
+- Add dependency to Maven configure pom.xml
+- mvn package
 
-Development Progress:
+#Development Progress
 
 1. Record SRDD list to the SparkContext. (DONE)
 	- User needs to specify the name of sRDD explicitly.
