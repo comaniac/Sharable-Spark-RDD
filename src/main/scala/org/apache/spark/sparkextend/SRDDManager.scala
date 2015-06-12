@@ -38,6 +38,13 @@ class SRDDManager(config: SparkConf) extends SparkContext {
       false
   }
 
+  def touchSRDD[T: ClassTag](name: String) = {
+    if (SRDDMap.exists(_._1 == name)) {
+      val srdd: SRDD[T] = SRDDMap(name).asInstanceOf[SRDD[T]]
+      srdd.use
+    }
+  }
+
   def deleteSRDD(name: String) = {
     if (SRDDMap.exists(_._1 == name))
       SRDDMap -= name

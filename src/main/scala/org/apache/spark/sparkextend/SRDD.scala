@@ -84,7 +84,9 @@ object SRDDWrapper {
       sc.bindSRDD(new SRDD[T](name, sc, rdd))
       CREATE_SUCCESS
     }
-    else
+    else {
+      sc.touchSRDD[T](name)
       CREATE_IGNORE
+    }
   }
 }
