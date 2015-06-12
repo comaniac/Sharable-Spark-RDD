@@ -35,6 +35,10 @@ object SRDDControls {
     minPartitions: Int
     ) extends SRDDControl
 
+  case class Delete(
+    name: String
+    ) extends SRDDControl
+
   case class Count(
     name: String
     ) extends SRDDControl
@@ -45,10 +49,14 @@ object SRDDControls {
 
   case class MapPow(
     name: String,
-    power: Int
+    power: Double
   ) extends SRDDControl
 
   case class ReduceSum(
+    name: String
+  ) extends SRDDControl
+
+  case class ReduceAvg(
     name: String
   ) extends SRDDControl
 

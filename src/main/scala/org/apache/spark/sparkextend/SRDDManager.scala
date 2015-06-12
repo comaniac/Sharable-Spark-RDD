@@ -10,20 +10,23 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.rdd._
 
 class SRDDManager(config: SparkConf) extends SparkContext {
-  println("SRDDManager is created")
+  val GCThld = Array(-3, -5)
+  println("SRDDManager is created, GC threshold is set to " + GCThld)
 
   val SRDDMap = mutable.HashMap[String, SRDD[_]]()
 
   def bindSRDD[T: ClassTag](rdd: SRDD[T]) = {
     SRDDMap(rdd.UniqueName) = rdd
-    println("SRDD " + rdd.UniqueName + " is binded.")
+    println("[SRDDManager] SRDD " + rdd.UniqueName + " is binded.")
   }
 
   def getSRDD[T: ClassTag](name: String): SRDD[T] = {
     try {
-      SRDDMap(name).asInstanceOf[SRDD[T]]
+      val srdd: SRDD[T] = SRDDMap(name).asInstanceOf[SRDD[T]]
+      srdd.use
+      srdd
     } catch {
-      case e: Exception => println("Fail to retrieve SRDD " + name + ": " + e)
+      case e: Exception => println("[SRDDManager] Fail to retrieve SRDD " + name + ": " + e)
       null
     }
   }
@@ -35,12 +38,39 @@ class SRDDManager(config: SparkConf) extends SparkContext {
       false
   }
 
+  def deleteSRDD(name: String) = {
+    if (SRDDMap.exists(_._1 == name))
+      SRDDMap -= name
+  }
+
   def listSRDD() = {
-    println("List recordrd SRDD:")
+    println("[SRDDManager] List recordrd SRDD:")
     SRDDMap.keys.foreach{
       key => 
-      println("UniqueName: " + key)
+      println("UniqueName: " + key + " Freq: " + SRDDMap(key).freq)
     }
+  }
+
+  def gc() = {
+    println("[SRDDManager] === GC start ===")
+    SRDDMap.keys.foreach{
+      key => 
+      val srdd = SRDDMap(key)
+      if (srdd.freq < GCThld(1)) {
+        println("Remove unused SRDD " + key)
+        SRDDMap -= key
+      }
+      else if (srdd.freq == GCThld(0)) {
+        println("Keep SRDD " + key + " in disk with frequent counter " + srdd.freq)
+        srdd.unpersist()
+        srdd.unuse
+      }
+      else {
+        println("Keep SRDD " + key + " with frequent counter " + srdd.freq)
+        srdd.unuse
+      }
+    }
+    println("[SRDDManager] === GC end ===")
   }
 
 }

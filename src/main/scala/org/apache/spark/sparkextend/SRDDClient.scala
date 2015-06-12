@@ -139,6 +139,10 @@ class SRDDClientReduce(
       val result = Await.result(actor ? ReduceSum(name), timeout.duration).asInstanceOf[String]
       reval.setReturnString(result)
       EXIT_SUCCESS
+    case "avg" =>
+      val result = Await.result(actor ? ReduceAvg(name), timeout.duration).asInstanceOf[String]
+      reval.setReturnString(result)
+      EXIT_SUCCESS
     case _ =>
       println("[SRDDClientReduce] Invalied command: " + command)
       EXIT_FAILURE
@@ -237,6 +241,8 @@ object SRDDClient extends App {
     if (reval.getExitCode == EXIT_SUCCESS) {
       command match {
         case "sum" =>
+          Some(reval.getReturnString)
+        case "avg" =>
           Some(reval.getReturnString)
       }
     }

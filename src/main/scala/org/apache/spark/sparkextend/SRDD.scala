@@ -18,7 +18,7 @@ class SRDD_I[T: ClassTag](var name: String)
     (result.get)(0).asInstanceOf[Long]
   }
 
-  def collect(): Array[T] = { // FIXME
+  def collect(): Array[T] = { // FIXME: Serialize
     val result: Option[Array[Any]] = SRDDClient.action(name, "collect")
     result.get.asInstanceOf[Array[T]]
   }
@@ -44,10 +44,20 @@ class SRDD[T: ClassTag](uname: String, sc: SRDDManager, var rdd: RDD[T])
   extends RDD[T](sc.asInstanceOf[SparkContext], Nil) {
 
   val UniqueName = uname
+  var FreqCnt = 0
 
   def this(name: String, sc: SRDDManager) = {
     this(name, sc, null)
   }
+
+  def use = { 
+    if (FreqCnt < 0)
+      FreqCnt = 0
+    else
+      FreqCnt += 1 
+  }
+  def unuse = { FreqCnt -= 1 }
+  def freq: Int = { FreqCnt }
 
   override def getPartitions: Array[Partition] = firstParent[T].partitions
 

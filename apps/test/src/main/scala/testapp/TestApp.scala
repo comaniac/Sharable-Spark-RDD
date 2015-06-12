@@ -16,7 +16,18 @@ object TestApp {
       srdd.cache
       println("#Input: " + srdd.count)
       println("Quadratic sum: " + srdd.map("pow", Array(2)).reduce("sum"))
+      srdd.count
+      println("pow test: 4, 3")
+      srdd.map("pow", Array(4)).map("pow", Array(3))
+      srdd.count
+      srdd.map("pow", Array(2)).map("pow", Array(5))
+      srdd.count
 
+      println("Average: " + srdd.reduce("avg"))
+      srdd.count
+      srdd.count
+      srdd.count
+      srdd.map("pow", Array(7))
     }
 
     def get_spark_context(appName : String) : SparkContextwithSRDD = {

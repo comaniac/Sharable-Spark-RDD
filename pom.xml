@@ -10,7 +10,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.7</java.version>
-		<scala.version>2.11.2</scala.version>
+		<scala.version>2.11.0</scala.version>
 		<scala.version.tools>2.11</scala.version.tools>
   </properties>
 
@@ -80,7 +80,7 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_2.10</artifactId>
-      <version>1.2.1</version>
+      <version>1.3.1</version>
     </dependency>
 	</dependencies>
 </project>
