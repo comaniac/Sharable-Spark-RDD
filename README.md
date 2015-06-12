@@ -18,18 +18,18 @@ This project aims to create an extension package of Spark to support shareable R
 #Development Progress
 
 1. Record SRDD list to the SparkContext. (DONE)
-	- User needs to specify the name of sRDD explicitly.
+	- User needs to specify the name of SRDD explicitly.
 	- The name of RDDs must be unique.
 	- The SRDD can be shared if user uses the unique name of SRDD to retrieve it.
 
 2. Make sRDD shareable (can be accessed by others). (DONE)
-	- Create a special SparkContext when launching Spark.
 	- SRDD is created under the special SparkContext.
+	- The same SRDD is able to be realized and reduced.
 	- Simple garbage collection.
 
 3. Integrate to Spark source
 
-4. Auto match the same sRDDs.
+4. Auto match the same SRDDs.
 
 5. Intelligent garbage collection.
 
