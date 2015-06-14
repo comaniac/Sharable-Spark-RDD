@@ -9,6 +9,15 @@ import org.apache.spark.sparkextend._
 // comaniac: Import Akka packages
 import akka.actor._
 
+object SRDDUtil {
+  def isRoot(name: String): Boolean = {
+    if (name.contains("_SRDDmap"))
+      false
+    else
+      true
+  }
+}
+
 object ExitCode extends Enumeration {
   type ExitCode = Value
   val EXIT_SUCCESS = Value

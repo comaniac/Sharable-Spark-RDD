@@ -11,24 +11,36 @@ import org.apache.spark.rdd._
 
 class SRDDManager(config: SparkConf) extends SparkContext {
   val GCThld = Array(-3, -5)
-  println("SRDDManager is created, GC threshold is set to " + GCThld)
+  println("SRDDManager is created, GC threshold is set to " + GCThld(0) + ", " + GCThld(1))
 
   val SRDDMap = mutable.HashMap[String, SRDD[_]]()
+  val TrashSRDD = mutable.HashMap[String, SRDD[_]]()
 
   def bindSRDD[T: ClassTag](rdd: SRDD[T]) = {
-    SRDDMap(rdd.UniqueName) = rdd
-    println("[SRDDManager] SRDD " + rdd.UniqueName + " is binded.")
+    val srdd: Option[SRDD[T]] = getSRDD(rdd.UniqueName)
+    if (!srdd.isDefined) {
+      SRDDMap(rdd.UniqueName) = rdd
+      println("[SRDDManager] SRDD " + rdd.UniqueName + " is binded.")
+    } 
+    else
+      println("[SRDDManager] SRDD " + rdd.UniqueName + " is rebinded.")
   }
 
-  def getSRDD[T: ClassTag](name: String): SRDD[T] = {
-    try {
-      val srdd: SRDD[T] = SRDDMap(name).asInstanceOf[SRDD[T]]
-      srdd.use
-      srdd
-    } catch {
-      case e: Exception => println("[SRDDManager] Fail to retrieve SRDD " + name + ": " + e)
-      null
+  def getSRDD[T: ClassTag](name: String): Option[SRDD[T]] = {
+    var srdd: SRDD[T] = null
+    if (hasSRDD(name))
+      srdd = SRDDMap(name).asInstanceOf[SRDD[T]]
+    else if (SRDDUtil.isRoot(name) && TrashSRDD.exists(_._1 == name)) {
+      srdd = TrashSRDD(name).asInstanceOf[SRDD[T]]
+      SRDDMap(name) = srdd
+      TrashSRDD -= name
     }
+    if (srdd != null) {
+      srdd.use
+      Some(srdd)
+    } 
+    else
+      None
   }
 
   def hasSRDD(name: String) = {
@@ -64,7 +76,12 @@ class SRDDManager(config: SparkConf) extends SparkContext {
       key => 
       val srdd = SRDDMap(key)
       if (srdd.freq < GCThld(1)) {
-        println("Remove unused SRDD " + key)
+        if (SRDDUtil.isRoot(srdd.UniqueName)) {
+          TrashSRDD(srdd.UniqueName) = srdd
+          println("Remove unused SRDD to trash " + key)
+        }
+        else
+          println("Remove unused SRDD " + key)
         SRDDMap -= key
       }
       else if (srdd.freq == GCThld(0)) {

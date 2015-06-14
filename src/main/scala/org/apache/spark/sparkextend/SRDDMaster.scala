@@ -25,15 +25,17 @@ import com.typesafe.config._
 class SRDDMaster extends Actor with ActorLogging {
   var conf: SparkConf = new SparkConf()
   var manager: SRDDManager = new SRDDManager(conf)
+  val gcPeriod = 5
 
-  val MapPowMatcher = """.+_pow(\d.\d)$""".r
+  val MapPowMatcher = """.+_SRDDmapPow(\d.\d)$""".r
 
   val GC = new Thread(new Runnable {
     def run () {
-      while (true) { Thread.sleep(5000); manager.gc; }
+      while (true) { Thread.sleep(gcPeriod * 1000); manager.gc; }
     }
   })
   GC.start
+  println("[SRDDMaster] GC has been set with period " + gcPeriod + " seconds.")
  
   def receive = {
     case Test(name) => 
@@ -55,50 +57,50 @@ class SRDDMaster extends Actor with ActorLogging {
       sender ! EXIT_SUCCESS
 
     case Count(name) =>
-      val srdd = manager.getSRDD(name)
+      val srdd = manager.getSRDD(name).get
       println("[SRDDMaster] count done.")
       sender ! srdd.rdd.count
 
     case Collect(name) =>
-      var srdd = manager.getSRDD(name)
+      var srdd = manager.getSRDD(name).get
       println("[SRDDMaster] collect done.")
       sender ! srdd.rdd.collect
 
     case Cache(name) =>
-      val srdd = manager.getSRDD(name)
+      val srdd = manager.getSRDD(name).get
       srdd.cache
       println("[SRDDMaster] cache done.")
       sender ! EXIT_SUCCESS
 
     case MapPow(name, p) =>
-      val srdd = manager.getSRDD(name).asInstanceOf[SRDD[String]]
+      val srdd = manager.getSRDD(name).get.asInstanceOf[SRDD[String]]
       var realName = name
       var realP = p
 
-      if (!manager.hasSRDD(name + "_pow" + p)) {
+      if (!manager.hasSRDD(name + "_SRDDmapPow" + p)) {
         val r = MapPowMatcher.findFirstIn(name)
         if (r.isDefined) {
           val last = name.slice(name.lastIndexWhere(ch => (ch == 'w')) + 1, name.length)
-          realName = name.replace("_pow" + last, "")
+          realName = name.replace("_SRDDmapPow" + last, "")
           realP = p + last.toDouble
-          SRDDWrapper.wrap(realName + "_pow" + realP, manager, srdd.rdd.map(e => (pow(e.toDouble, p)).toString))
+          SRDDWrapper.wrap(realName + "_SRDDmapPow" + realP, manager, srdd.rdd.map(e => (pow(e.toDouble, p)).toString))
         }
         else
-          SRDDWrapper.wrap(name + "_pow" + p, manager, srdd.rdd.map(e => (pow(e.toDouble, p)).toString))
+          SRDDWrapper.wrap(name + "_SRDDmapPow" + p, manager, srdd.rdd.map(e => (pow(e.toDouble, p)).toString))
       }
       else
-        println("[SRDDMaster] Use existed SRDD " + name + "_pow" + p)
-      println("[SRDDMaster] map.pow " + realName + "_pow" + realP + " done.")
-      sender ! (realName + "_pow" + realP)
+        println("[SRDDMaster] Use existed SRDD " + name + "_SRDDmapPow" + p)
+      println("[SRDDMaster] map.pow " + realName + "_SRDDmapPow" + realP + " done.")
+      sender ! (realName + "_SRDDmapPow" + realP)
 
     case ReduceSum(name) =>
-      val srdd = manager.getSRDD(name).asInstanceOf[SRDD[String]]
+      val srdd = manager.getSRDD(name).get.asInstanceOf[SRDD[String]]
       val result = srdd.rdd.map(e => e.toDouble).reduce((a, b) => (a + b))
       println("[SRDDMaster] reduce.sum done.")
       sender ! result.toString
 
     case ReduceAvg(name) =>
-      val rdd = manager.getSRDD(name).asInstanceOf[SRDD[String]].rdd
+      val rdd = manager.getSRDD(name).get.asInstanceOf[SRDD[String]].rdd
       val result = rdd.map(e => e.toDouble).reduce((a, b) => (a + b)) / rdd.count
       println("[SRDDMaster] reduce.avg done.")
       sender ! result.toString
